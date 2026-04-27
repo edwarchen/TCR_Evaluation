@@ -1,93 +1,151 @@
-# TCR_pro 项目说明
+# TCR/BCR Primer Evaluation Pipeline 🧬
 
-本项目主要用于评估引物对 V/J 参考模板的覆盖率，并输出覆盖统计、覆盖图与引物命中位点信息。
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![R](https://img.shields.io/badge/R-4.0%2B-blue)
+![openPrimeR](https://img.shields.io/badge/openPrimeR-Supported-green)
 
-## 目录说明
+A comprehensive, automated bioinformatics pipeline for evaluating and visualizing the coverage of T-cell receptor (TCR) and B-cell receptor (BCR) multiplex PCR primers. 
 
-- `data/`
-  - 存放参考序列（FASTA）。
-  - 当前包含：`TRBV.fasta`、`TRBJ.fasta`、`IGHV.fasta`、`IGHJ.fasta`、`IGKV.fasta`、`IGKJ.fasta`、`IGLV.fasta`、`IGLJ.fasta`。
-  - 所有参考序列已经去除序列中的`.`等gap
+This tool seamlessly integrates primer formatting, in silico PCR evaluation (via `openPrimeR`), and high-quality ggplot2 visualizations to help researchers design and optimize immune repertoire sequencing (Rep-Seq) primers.
 
-- `data/primer_set/`
-  - 存放引物文件（Excel 和 FASTA）。将Excel中的引物序列转换为了FASTA格式；
-  - 主要输入文件在这里，例如：`TRBV_primers.fasta`、`TRBJ_primers.fasta`、`IGHV_primers.fasta`、`IGHJ_primers.fasta`。
+---
 
-- `scripts/`
-  - 存放评估与辅助脚本（R/Python）。
-  
-- `results/`
-  - 存放运行输出结果。
-  - `coverage_tables/`：覆盖统计表、位点表。
-  - `coverage_plots/`：覆盖图（png）。
-  - `primer_reference_heatmaps/`：引物与参考序列对齐热图。
-  - `uncovered_templates/`：未覆盖模板表及其分组可视化图。
+## 🌟 Key Features
 
-## 脚本作用
+- **Automated Workflow**: Run the entire evaluation process—from raw Excel/CSV primer lists to final publication-ready heatmaps—with a single command.
+- **High-Resolution Visualization**:
+  - **Primer Binding Heatmaps**: Visualize exactly where and how each primer binds to the reference sequences, including mismatch positions.
+  - **Uncovered Sequence Analysis**: Automatically extracts and plots reference sequences that failed to amplify, highlighting sequence features to guide primer redesign.
+- **Multi-Target Support**: Easily switch between different immune loci (e.g., `TRB`, `IGH`, `IGK`, `IGL`).
+- **Mismatch Tolerance**: Accurately simulates PCR conditions by allowing up to 3 mismatches (configurable).
 
-- `scripts/TRB_eval.R`
-  - 评估 `TRBV/TRBJ` 引物覆盖率。
-  - 输出 `TRBV_cov.csv`、`TRBJ_cov.csv` 和对应 `*_cov.png`。
+---
 
-- `scripts/*_eval.R`
-  - 评估 `IGHV/IGHJ` 引物覆盖率。
-  - 支持 J 引物裁剪参数（`trim`）。
-  - 额外输出引物在模板上的匹配位点：`IGHV_binding_sites.csv`、`IGHJ_binding_sites.csv`。
-  - 脚本需要自行指定允许错配数（`max_mismatch`）。
-  - 能够输出未覆盖到的引物，用于后续的补充引物设计。
+## 🏗️ Pipeline Architecture
 
-- `scripts/Primer_coverage_heatmap.R`
-  - 根据 `*_binding_sites.csv` 和对应参考 FASTA 绘制“参考序列 vs 引物序列”对齐热图。
-  - 图中上方是完整参考序列，下方是按命中 `start/end` 对齐后的引物序列，未覆盖位置用 `-` 补齐。
-  - 脚本中需要自行指定基因家族名称（如 `IGHV`、`IGHJ`）。
+The pipeline consists of four integrated modules, orchestrated by `main.py`:
 
-- `scripts/Uncovered_plot.R`
-  - 将未覆盖模板的 CSV 画成碱基热图。
-  - 当前支持传入一个目录，批量处理该目录下所有 CSV。
+1. **`split_primers.py`**: Parses raw Excel/CSV primer sets and splits them into V-forward and J-reverse FASTA files.
+2. **`evaluation.R`**: The core analytical engine. Uses `openPrimeR` to evaluate primer coverage against reference templates, extracting binding sites and identifying uncovered sequences.
+3. **`Primer_coverage_heatmap.R`**: Generates detailed nucleotide-level alignment heatmaps for covered regions.
+4. **`Uncovered_plot.R`**: Generates nucleotide-level heatmaps for sequences missed by the primer set, grouped by gene family.
 
-- `scripts/split_primers.py`
-  - 从引物表（Excel/CSV）拆分出 V/J 引物 FASTA。
-  - 自动给 V 引物加 `_fw`，J 引物加 `_rev`（按脚本当前逻辑）。
+---
 
-- `scripts/step_by_step_eval.R`
-  - 精简版示例脚本，用于快速验证覆盖率流程（便于调试）。
+## 🚀 Getting Started
 
-- `scripts/official_pipeline.R`
-  - openPrimeR 官方示例流程（参考用），展示模板读取、约束检查和覆盖率统计的标准调用方式。
+### Prerequisites
 
-## 结果文件说明
+Ensure you have the following installed on your system:
 
-- 覆盖统计：`results/coverage_tables/*_cov.csv`
-- 覆盖图：`results/coverage_plots/*_cov.png`
-  - 显示各模板/分组的覆盖情况。
-- 位点结果（部分脚本）：`results/coverage_tables/*_binding_sites.csv`
-  - 记录引物命中模板的具体区间（`start/end`）。
-- 引物-参考对齐图：`results/primer_reference_heatmaps/**.png`
-  - 每张图显示一个 `template_id + primer_id` 的两行对齐关系。
-- 未覆盖模板：`results/uncovered_templates/*_uncovered.csv`
-  - 历史分析产物，可继续按家族拆分或作图。
+- **Python 3.8+**
+  - `pandas`
+  - `openpyxl`
+- **R 4.0+**
+  - `openPrimeR` (Bioconductor)
+  - `Biostrings` (Bioconductor)
+  - `ggplot2`
+  - `tidyr`
 
-## 最小使用方式
+#### Installing R Dependencies
+```R
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
 
-在项目根目录运行：
-
-```bash
-Rscript scripts/TRB_eval.R
-Rscript scripts/IGH_eval.R
-Rscript scripts/IGK_eval.R
-Rscript scripts/IGL_eval.R
+BiocManager::install(c("openPrimeR", "Biostrings"))
+install.packages(c("ggplot2", "tidyr"))
 ```
 
-若要画未覆盖模板热图，先在 `scripts/Uncovered_plot.R` 中设置目录，再运行：
-
+#### Installing Python Dependencies
 ```bash
-Rscript scripts/Uncovered_plot.R
+pip install pandas openpyxl argparse
 ```
 
-## 备注
+### Directory Structure
 
-- 各评估脚本里 `cfg` 段定义了输入参考与引物路径，是你更换数据时最常改的部分。
-- 若运行报错，先检查：
-  - 文件路径是否存在；
-  - 引物 ID 后缀是否与方向一致（`_fw` / `_rev`）；
-  - 参考序列是否为预期清洗版本（是否需要 `*_clean.fasta`）。
+Before running, ensure your project directory is structured as follows:
+
+```text
+├── data/
+│   ├── IGHV.fasta              # Reference V sequences for IGH
+│   ├── IGHJ.fasta              # Reference J sequences for IGH
+│   ├── TRBV.fasta              # Reference V sequences for TRB
+│   ├── TRBJ.fasta              # Reference J sequences for TRB
+│   └── primer_set/
+│       └── tcr_primers.xlsx    # Your input primer list
+├── main.py                     # The main orchestrator script
+├── split_primers.py            # Python formatting script
+├── evaluation.R                # R evaluation script
+├── Primer_coverage_heatmap.R   # R visualization script
+└── Uncovered_plot.R            # R visualization script
+```
+
+*Note: Reference FASTA headers must follow the IMGT format: `ACCESSION|GROUP|SPECIES|FUNCTION`.*
+
+---
+
+## 💻 Usage
+
+Run the complete pipeline using the `main.py` wrapper. 
+
+### Basic Command
+
+```bash
+python main.py -i data/primer_set/tcr_primers.xlsx -t TRB
+```
+
+### Arguments
+
+| Argument | Short | Description | Default |
+| :--- | :---: | :--- | :--- |
+| `--input` | `-i` | Path to the input Excel or CSV file containing primers. | **Required** |
+| `--target` | `-t` | Target locus name (e.g., `TRB`, `IGH`, `IGK`, `IGL`). The script will automatically look for `{TARGET}V` and `{TARGET}J` references. | **Required** |
+| `--v_pattern`| | String pattern used to identify V region primers in the input file. | `V` |
+| `--j_pattern`| | String pattern used to identify J region primers in the input file. | `J` |
+
+### Input File Format
+
+The input Excel (`.xlsx`) or `.csv` file must contain at least two columns:
+1. **Primer ID**: (e.g., `TRBV1`, `IGHJ4`)
+2. **Sequence**: (e.g., `GCTACTTCGGAGCCTCGG`)
+
+---
+
+## 📊 Output Directory Structure
+
+Upon successful execution, the pipeline generates a `results/` folder containing comprehensive reports and plots:
+
+```text
+results/
+├── coverage_tables/
+│   ├── TRBV_binding_sites.csv       # Exact binding coordinates & mismatches
+│   └── TRBV_cov.csv                 # Overall coverage statistics
+├── coverage_plots/
+│   └── TRBV_cov.png                 # Summary coverage plot
+├── primer_reference_heatmaps/
+│   └── TRBV/
+│       ├── TRBV1_covered_region.png # High-res nucleotide alignment heatmap
+│       └── ...
+└── uncovered_templates/
+    └── TRBV_unc/
+        ├── TRBV_family1.csv         # Uncovered sequences by family
+        └── TRBV_family1_heatmap.png # Nucleotide heatmap for redesign
+```
+
+---
+
+## 💡 Use Cases for Primer Optimization
+
+1. **Identify Blind Spots**: Review the `uncovered_templates` heatmaps to see exactly which conserved regions are missing coverage.
+2. **Optimize Mismatches**: Use the `primer_reference_heatmaps` to visualize where mismatches occur. If a mismatch is consistently at the 3' end, the primer must be redesigned.
+3. **Patent & IP Documentation**: The outputs generated by this pipeline (binding site CSVs, comprehensive heatmaps) serve as excellent technical disclosure materials for patent applications and software copyright registrations.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+*Developed for advanced Immune Repertoire Sequencing (Rep-Seq) primer design and evaluation.*
