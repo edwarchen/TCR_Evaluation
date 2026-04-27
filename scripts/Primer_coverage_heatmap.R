@@ -34,9 +34,9 @@ safe_name <- function(x) {
 }
 
 opts <- parse_args(list(
-  binding = "results/coverage_tables/IGKV_binding_sites.csv",
-  ref = "data/IGKV.fasta",
-  out = "results/primer_reference_heatmaps/IGKV",
+  binding = "results/coverage_tables/IGLV_binding_sites.csv",
+  ref = "data/IGLV.fasta",
+  out = "results/primer_reference_heatmaps/IGLV",
   max_plots = "Inf"
 ))
 

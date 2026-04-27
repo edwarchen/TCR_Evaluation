@@ -8,7 +8,7 @@ hdr.structure <- c("ACCESSION", "GROUP", "SPECIES", "FUNCTION")
 cfg <- list(
   IGLV = list(
     ref_path = "data/IGLV.fasta",
-    primer_path = "data/primer_set/IGLV_primers.fasta",
+    primer_path = "data/primer_set/IGLV_primers_New.fasta",
     direction = "fw",
     primer_id_suffix = "_fw",
     trim = 0 
